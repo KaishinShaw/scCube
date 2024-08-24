@@ -1160,14 +1160,27 @@ def get_min_grid_index(
 def read_or_pass_through(input_data):
     """
     Helper function to either read a CSV file or pass through data if it's already a DataFrame.
+    Additionally checks if the DataFrame contains columns with 'x' and 'y', which might be needed for spatial data.
+
+    Example usage:
+    df = read_or_pass_through("path/to/your/data.csv")
+    df = read_or_pass_through(your_dataframe)
     """
     if isinstance(input_data, str):
-        return pd.read_csv(input_data, index_col=0)
+        df = pd.read_csv(input_data, index_col=0)
     elif isinstance(input_data, pd.DataFrame):
-        return input_data
+        df = input_data
     else:
         raise ValueError("Input data must be either a path to a CSV file or a pandas DataFrame.")
 
+    columns = df.columns
+    has_x = any('x' in col for col in columns)
+    has_y = any('y' in col for col in columns)
+
+    if not has_x or not has_y:
+        print("Warning: The input data may be missing spatial coordinates as it lacks columns containing 'x' and/or 'y'.")
+
+    return df
 
 def create_and_save_anndata(data, meta, spatial_key=['x', 'y'], save_path=None):
     """
